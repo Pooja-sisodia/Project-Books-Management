@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000
 
 app.use(express.json());
 
-mongoose.connect("", {
+mongoose.connect("mongodb+srv://chetan:7000724002@cluster0.8cp68gw.mongodb.net/group-10Database", {
     useNewUrlParser: true
 })
 .then(() => console.log("MongoDb is connected"), err => console.log(err))
