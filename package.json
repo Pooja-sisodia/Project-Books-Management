@@ -1,0 +1,29 @@
+{
+  "name": "project---books-management",
+  "version": "1.0.0",
+  "description": "Books Management Project-3",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pooja-sisodia/Project---Books-Management.git"
+  },
+  "keywords": [
+    "node",
+    "npm"
+  ],
+  "author": "Group-10",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pooja-sisodia/Project---Books-Management/issues"
+  },
+  "homepage": "https://github.com/Pooja-sisodia/Project---Books-Management#readme",
+  "dependencies": {
+    "express.js": "^1.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.4",
+    "mongoose": "^6.7.3"
+  }
+}
