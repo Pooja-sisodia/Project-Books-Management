@@ -1,6 +1,6 @@
 const userModel = require('../models/userModel.js')
-const bookModel = require('../models/bookModel') 
-const userModel = require('../models/userModel')
+const bookModel = require('../models/bookModel')
+
 const mongoose = require('mongoose')
 
 
@@ -14,7 +14,7 @@ const createUser = async (req, res) => {
             return res.status(400).send({ status: false, msg: "for registration user data is required" })
         }
 
-        if (!isValid(title)) {
+        if (!title) {
             return res.status(400).send({ status: false, msg: "title is required for registration" })
         }
 
@@ -56,7 +56,7 @@ const createUser = async (req, res) => {
             return res.status(400).send({ status: false, msg: "Please enter Password for registartion" })
         }
 
-        if (!/^[a-z0-9_]{3,}@[a-z]{3,}[.]{1}[a-z]{3,6}$/.test(password)) {
+        if (!(/^[\s]*[0-9a-zA-Z@#$%^&*]{8,15}[\s]*$/).test(password)) {
 
             return res.status(400).send({ status: false, msg: "please Enter valid Password and it's length should be 8-15" })
         }
@@ -77,14 +77,15 @@ const loginUser = async function (req, res) {
         const email = req.body.email;
         const password = req.body.password;
 
-        
-        if (Object.keys(requestBody).length == 0) {
+
+        if (Object.keys(req.body).length == 0) {
             res.status(400).send({ status: false, msg: "Please enter Email and Password to login" })
         }
 
-        if (Object.keys(requestBody).length > 2) {
+        if (Object.keys(req.body).length > 2) {
             res.status(400).send({ status: false, msg: "invalid request.Only email & password is required for logging In" })
         }
+
 
         if (!email) {
             return res.status(400).send({ msg: "Email is not present" });
@@ -100,12 +101,12 @@ const loginUser = async function (req, res) {
             return res.status(404).send({ status: false, msg: "Email or Password is not corerct" });
         }
 
-        let token = jwt.sign({ userId: user._id }, "project3-room10-key",{ expiresIn: '24hr' })
+        let token = jwt.sign({ userId: user._id }, "project3-room10-key", { expiresIn: '24hr' })
 
-        return res.status(201).send({ status: true,message:'Success',data: token });
+        return res.status(201).send({ status: true, message: 'Success', data: token });
     }
     catch (err) {
         return res.status(500).send({ status: false, msg: err.message });
     }
 }
-module.exports.loginUser=loginUser
+module.exports.loginUser = loginUser
