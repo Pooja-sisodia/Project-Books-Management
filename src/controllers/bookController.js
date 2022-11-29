@@ -2,6 +2,7 @@ const bookModel = require('../models/bookModel');
 const userModel = require('../models/userModel');
 const mongoose = require('mongoose');
 const moment = require('moment');
+const ObjectId = require("mongoose").Types.ObjectId
 
 //==================================================Regex and Validators==================================================================//
  const isValidRequestBody = (value)=>{
@@ -21,7 +22,10 @@ const moment = require('moment');
    retrun (/^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$/)
    .test(releasedAt)
  }
-   
+ 
+ const isValidId = function(userId){
+    return mongoose.Types.ObjectId.isValid(userId);
+};
 
 //================================================Create-Books============================================================================//
 const createBooks = async function(req,res){
@@ -46,22 +50,23 @@ const createBooks = async function(req,res){
     if(!isValid(subcategory)){return res.status(400).send({status:false, message:"excerpt is required"})}
     if(!isValid(releasedAt)){return res.status(400).send({status:false, message:"releasedAt is required"})}
     
-    if(!mongoose.isValidObjectId(userId)){return res.status(406).send({status:false, message:"please enter a valid userId"})}
-    const validUser = await userModel.findById(userId)
-    if(!validUser) return res.status(400).send({status:false, message:`user not found by this ${userId} userId `})
+    if(isValidId(userId)){return res.status(400).send({status:false, message:"please enter a valid userId"})}
+    let validUser = await userModel.findById(userId)
+    if(!validUser){return res.status(404).send({status:false, message:"user not found by this userId "})}
 
     let uniqueTitle = await bookModel.findOne({title:title})
     if(uniqueTitle){return res.status(400).send({status:false, message:"this title is already exist"})}
 
-    if(!isValidISBN(ISBN)){return res.status(406).send({status:false, message:"please provide the valid ISBN"})}
-    let uniqueISBN = await bookModel.findOne($or,{ISBN:ISBN})
+    if(!isValidISBN(ISBN)){return res.status(400).send({status:false, message:"please provide the valid ISBN"})}
+    let uniqueISBN = await bookModel.findOne({ISBN:ISBN})
     if(uniqueISBN){return res.status(400).send({status:false,message:"this ISBN is already used"})}
 
     let uniqueSubcategory = await bookModel.findOne({subcategory:subcategory})
     if(uniqueSubcategory){return res.status(400).send({status:false,message:"these subcatagory is already exist"})}
-
-    if(!validDate(releasedAt)){return res.status(406).send({status:false, message:"Please enter a release Date YYYY-MM-DD format"})
-    } else { data["releasedAt"] = moment().format('YYYY MM DD') }
+    
+    if(releasedAt){
+    if(!validDate(releasedAt)) return res.status(400).send({status:false, message:"Please enter a release Date YYYY-MM-DD format"})
+    }else { data["releasedAt"] = moment().format('YYYY MM DD') } 
     
     if(!reviews==1||!reviews==2||!reviews==3||!reviews==4||!reviews==5){return res.status(400).send({status:false, message:"reviews should be in between 1 to 5"})}
     
