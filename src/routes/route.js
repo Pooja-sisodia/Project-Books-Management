@@ -10,6 +10,7 @@ router.post('/register', userController.createUser)
 router.post('/login', userController.loginUser)
 router.post('/books', bookController.createBooks)
 router.get('/books', bookController.getbooks)
+router.delete('/books/:bookId', bookController.DeletedBook)
 
 
 
