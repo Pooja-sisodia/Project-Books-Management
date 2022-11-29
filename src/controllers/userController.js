@@ -57,8 +57,7 @@ const createUser = async (req, res) => {
         }
 
         if (!(/^[\s]*[0-9a-zA-Z@#$%^&*]{8,15}[\s]*$/).test(password)) {
-
-            return res.status(400).send({ status: false, msg: "please Enter valid Password and it's length should be 8-15" })
+        return res.status(400).send({ status: false, msg: "please Enter valid Password and it's length should be 8-15" })
         }
         let savedData = await userModel.create(req.body);
         return res.status(201).send({ status: true, message: 'Success', data: savedData });
