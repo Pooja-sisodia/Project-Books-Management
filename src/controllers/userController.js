@@ -1,8 +1,6 @@
 const userModel = require('../models/userModel.js')
 const bookModel = require('../models/bookModel')
-
 const mongoose = require('mongoose')
-
 
 //==============================createUser=====================================//
 
@@ -23,7 +21,7 @@ const createUser = async (req, res) => {
         }
 
         if (!name) {
-            return res.status(400).send({ status: false, msg: "Enter your  Name" });
+            return res.status(400).send({ status: false, msg: "Enter your Name" });
         }
 
         if (!(/^[a-zA-Z]{2,}(?: [a-zA-Z]+){0,2}$/).test(name)) {

@@ -37,7 +37,11 @@ const createBooks = async function(req,res){
     if(!isValidRequestBody){return res.status(400).send({status:false, message:"please provide entries to the request body"})}
     let{title,excerpt,userId,ISBN,category,subcategory,releasedAt,reviews}=data
 
-//============================================crendentials-checking==========================================================================//
+//==============================================Authorization===================================================================================//
+const authUserId = req.authUser
+    if (authUserId != userId) return res.status(403).send({ status:false, message: `${userId} This ID is not authorized` })
+
+//============================================crendentials-checking==============================================================================//
     if(!title){return res.status(400).send({status:true, message:"please provide the excerpt key"})}
     if(!excerpt){return res.status(400).send({status:true, message:"please provide the excerpt key"})}
     if(!userId){return res.status(400).send({status:true, message:"please provide the userId key"})}
@@ -98,10 +102,6 @@ const getbooks=async(req,res)=>{
     }
 }
 
-
-
-
-
 //========================================================deleteBook===================================//
 const DeletedBook = async function (req, res) {
     try {
@@ -113,6 +113,10 @@ const DeletedBook = async function (req, res) {
         if (savedata.isDeleted == true) {
             return res.status(404).send({ status: false, message: "book is already deleted" })
         }
+//==============================================Authorization===================================================================================//
+const authUserId = req.authUser
+       if (authUserId != userId) return res.status(403).send({ status:false, message: `${userId} This ID is not authorized` })
+
 
         const deleteBook = await bookModel.findByIdAndUpdate({ _id: bookId }, { $set: { isDeleted: true, deletedAt: Date.now() } });
         return res.status(200).send({ status: true, message: "book has been deleted successfully" })
