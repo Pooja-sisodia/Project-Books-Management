@@ -72,7 +72,11 @@ const authUserId = req.authUser
     let uniqueSubcategory = await bookModel.findOne({subcategory:subcategory})
     if(uniqueSubcategory){return res.status(400).send({status:false,message:"these subcatagory is already exist"})}
     
-    if(!reviews==1||!reviews==2||!reviews==3||!reviews==4||!reviews==5){return res.status(400).send({status:false, message:"reviews should be in between 1 to 5"})}
+    if(releasedAt){
+        if(!validDate(releasedAt)) return res.status(406).send({ status: false, message: 'Please enter a  release Date YYYY-MM-DD format' })
+    }else{ data["releasedAt"] = moment().format('YYYY MM DD') }
+
+    if(reviews) return res.status(406).send({status:false, message: 'default value of reviews is 0 while book registering' })
     
     if(isDeleted == true){return res.status(400).send({status:false, message:"you can't delete a book while creating"})}
 
@@ -102,10 +106,61 @@ const getbooks=async(req,res)=>{
     }
 }
 
-//========================================================deleteBook===================================//
+//=====================================================Update-Books==========================================================================//
+const updateBooks = async function(req, res){
+ try{
+    let data = req.body
+    let {title, excerpt, ISBN, releasedAt} = data
+   
+    let id = req.params.userId
+    if(!mongoose.isValidObjectId(id)){return res.status(400).send({status:false, message: "please enter a valid userId"})}
+    
+    let bookUser = await bookModel.findById(id)
+    if(!bookUser){return res.status(404).send({status:false, message:"Invalid book id"})}
+    
+ //==============================================Authorization===================================================================================//
+ const authUserId = req.authUser
+    if(authUserId != bookUser.userId) return res.status(403).send({status:false, message: `${userId} This ID is not authorized` })
+ 
+
+ //=================================================Checking-Crendentials========================================================================//
+ if (!isValidRequestBody(data)) return res.status(400).send({ status: false, message: " body cant't be empty Please enter some data." })
+ 
+    if (!isValid(ISBN)) return res.status(400).send({ status: false, message: " ISBN is required" })
+    if (!isValid(title)) return res.status(400).send({ status: false, message: "Title is required" })
+    if (!isValid(excerpt)) return res.status(400).send({ status: false, message: "excerpt is  required" })
+ 
+    if(ISBN){
+        if(!isValidISBN(ISBN)) return res.status(406).send({ status: false, message: 'Plese enter valid ISBN' })
+        }
+ 
+        const unique = await bookModel.findOne({ $or: [{ title: title }, { ISBN: ISBN }] })
+ 
+        if(unique){
+             if(unique.title == title.trim()){
+                 return res.status(400).send({ message: `${title} is  alrady exist` })
+             }else{ return res.status(400).send({ message: `${ISBN}:--This ISBN is alrady exist  ` }) }
+           
+            }
+
+        if(releasedAt){
+            if(!validDate(releasedAt)) return res.status(406).send({status:false, message: 'Plese enter a release Date YYYY-MM-DD format' })
+        }
+ 
+        const newUpdate = await bookModel.findOneAndUpdate({bookId: id, isDeleted: false}, { $set: { title: title, excerpt: excerpt, releasedAt: releasedAt, ISBN: ISBN } }, { new: true })
+ 
+        if(!newUpdate) { return res.status(404).send({status:false, message: "book not found so can't update anything" }) }
+ 
+        res.status(200).send({status:true, message: "updated successfully", data: newUpdate })
+
+    }catch(error) {
+       return res.status(500).send({status:false, message: error.message })
+    }
+
+}
+//==========================================================deleteBook==========================================================================//
 const DeletedBook = async function (req, res) {
     try {
-
         let bookId = req.params.bookId
         if (!mongoose.Types.ObjectId.isValid(bookId))
             return res.status(400).send({ status: false, msg: "please enter valid bookid" })
@@ -115,17 +170,17 @@ const DeletedBook = async function (req, res) {
         }
 //==============================================Authorization===================================================================================//
 const authUserId = req.authUser
-       if (authUserId != userId) return res.status(403).send({ status:false, message: `${userId} This ID is not authorized` })
+       if (authUserId != savedata.userId) return res.status(403).send({ tatus:false, message: `${userId} This ID is not authorized` })
 
 
-        const deleteBook = await bookModel.findByIdAndUpdate({ _id: bookId }, { $set: { isDeleted: true, deletedAt: Date.now() } });
-        return res.status(200).send({ status: true, message: "book has been deleted successfully" })
+    const deleteBook = await bookModel.findByIdAndUpdate({ _id: bookId }, { $set: { isDeleted: true, deletedAt: Date.now() } });
+       return res.status(200).send({ status: true, message: "book has been deleted successfully" })
 
 
-    } catch (error) {
-        res.status(500).send({ status: false, msg: error.message });
+    }catch(error){
+        res.status(500).send({status: false, msg:error.message});
 
     }
 }
 
-module.exports ={ getbooks,createBooks,DeletedBook}
+module.exports ={createBooks,getbooks,updateBooks,DeletedBook}
