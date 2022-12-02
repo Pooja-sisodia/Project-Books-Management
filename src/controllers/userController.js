@@ -2,8 +2,7 @@ const userModel = require('../models/userModel.js')
 const bookModel = require('../models/bookModel')
 const mongoose = require('mongoose')
 
-//==============================createUser=====================================//
-
+//======================================================createUser============================================================//
 const createUser = async (req, res) => {
     try {
         let { title, name, phone, email, password } = req.body
@@ -66,7 +65,7 @@ const createUser = async (req, res) => {
 
 module.exports.createUser = createUser
 
-//=============================================Login-User==================================================//
+//=========================================================Login-User====================================================================//
 
 const loginUser = async function (req, res) {
 

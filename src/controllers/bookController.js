@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const moment = require('moment');
 const ObjectId = require("mongoose").Types.ObjectId
 
-//==================================================Regex and Validators==================================================================//
+//==================================================Regex-And-Validators==================================================================//
  const isValidRequestBody = (value)=>{
   return Object.keys(value) > 0
   }
@@ -21,7 +21,7 @@ const ObjectId = require("mongoose").Types.ObjectId
   };
   
 
-  const validDate = function(releasedAt){
+  const isValidDate = function(releasedAt){
    retrun (/^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$/)
    .test(releasedAt)
  }
@@ -33,8 +33,8 @@ const ObjectId = require("mongoose").Types.ObjectId
 //================================================Create-Books============================================================================//
 const createBooks = async function(req,res){
     try{
-    let data = req.form-data
-    if(!isValidRequestBody){return res.status(400).send({status:false, message:"please provide entries to the request body"})}
+    let data = req.body
+    if(!isValidRequestBody(data)){return res.status(400).send({status:false, message:"please provide entries to the request body"})}
     let{title,excerpt,userId,ISBN,category,subcategory,releasedAt,reviews}=data
 
 //==============================================Authorization===================================================================================//
@@ -73,7 +73,7 @@ const authUserId = req.authUser
     if(uniqueSubcategory){return res.status(400).send({status:false,message:"these subcatagory is already exist"})}
     
     if(releasedAt){
-        if(!validDate(releasedAt)) return res.status(406).send({ status: false, message: 'Please enter a  release Date YYYY-MM-DD format' })
+        if(!isValidDate(releasedAt)) return res.status(400).send({ status: false, message: 'Please enter a  release Date YYYY-MM-DD format' })
     }else{ data["releasedAt"] = moment().format('YYYY MM DD') }
 
     if(reviews) return res.status(406).send({status:false, message: 'default value of reviews is 0 while book registering' })
@@ -89,8 +89,7 @@ const authUserId = req.authUser
 }
 
 
-//===============================================Get-Books===========================================================//
-
+//======================================================Get-Books================================================================//
 const getbooks=async(req,res)=>{
     try{
       const data=req.query
@@ -103,9 +102,32 @@ const getbooks=async(req,res)=>{
 
     } catch (error){
         return res.status(500).send({msg:err.message})
+
     }
 }
 
+//================================================Get-Books-By-Id===========================================================================//
+const getBookById = async function (req, res) {
+    try {
+        let bookId = req.params.bookId
+  
+        if (!mongoose.Types.ObjectId.isValid(bookId)) {
+            return res.status(400).send({ status: false, message: "Please provide a valid book id." })
+        }
+  
+        let bookData = await bookModel.findOne({ id: bookId, isDeleted: false }).select({ "ISBN": 0, "isDeleted": 0, "subcategory": 0, "_v": 0, "createdAt": 0, "updatedAt": 0 })
+  
+        if (bookData) {
+            return res.status(200).send({ status: true, message: "Books List", data: bookData })
+        } else {
+            return res.status(400).send({ status: false, message: "No books found with this id." })
+        }
+    }
+    catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
+    }
+  }
+  
 //=====================================================Update-Books==========================================================================//
 const updateBooks = async function(req, res){
  try{
@@ -118,12 +140,12 @@ const updateBooks = async function(req, res){
     let bookUser = await bookModel.findById(id)
     if(!bookUser){return res.status(404).send({status:false, message:"Invalid book id"})}
     
- //==============================================Authorization===================================================================================//
+ //=====================================================Authorization============================================================================//
  const authUserId = req.authUser
     if(authUserId != bookUser.userId) return res.status(403).send({status:false, message: `${userId} This ID is not authorized` })
  
 
- //=================================================Checking-Crendentials========================================================================//
+ //====================================================Checking-Crendentials========================================================================//
  if (!isValidRequestBody(data)) return res.status(400).send({ status: false, message: " body cant't be empty Please enter some data." })
  
     if (!isValid(ISBN)) return res.status(400).send({ status: false, message: " ISBN is required" })
@@ -158,6 +180,7 @@ const updateBooks = async function(req, res){
     }
 
 }
+
 //==========================================================deleteBook==========================================================================//
 const DeletedBook = async function (req, res) {
     try {
@@ -168,7 +191,7 @@ const DeletedBook = async function (req, res) {
         if (savedata.isDeleted == true) {
             return res.status(404).send({ status: false, message: "book is already deleted" })
         }
-//==============================================Authorization===================================================================================//
+//====================================================Authorization================================================================================//
 const authUserId = req.authUser
        if (authUserId != savedata.userId) return res.status(403).send({ tatus:false, message: `${userId} This ID is not authorized` })
 
@@ -183,4 +206,4 @@ const authUserId = req.authUser
     }
 }
 
-module.exports ={createBooks,getbooks,updateBooks,DeletedBook}
+module.exports ={createBooks,getbooks,getBookById,updateBooks,DeletedBook}
