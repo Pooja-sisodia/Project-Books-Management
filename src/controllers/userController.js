@@ -104,12 +104,25 @@ const loginUser = async function (req, res) {
             return res.status(404).send({ status: false, msg: "Email or Password is not corerct" });
         }
 
-        let token = jwt.sign({ userId: User._id }, "project3-room10-key", { expiresIn: '24hr' })
+        let Payload = {
+            userId: User._id.toString(),
+            EmailID: User.email,
+            Batch: "lithium",
+            Group: "10",
+            Project: "project-booksManagementementGroup40",
+          }
+          
+         const  token = jwt.sign( Payload ,"project3-room10-key" ,  {expiresIn: "60m"} )
+      
+          return res.status(200).send({ status: true, message: "token is successfully generated",  token: token })
+      
+      
+        } catch (error) {
+          return res
+            .status(500)
+            .send({ status: false, message: error.message })
+        }
+      }
 
-        return res.status(201).send({ status: true, message: 'Success', data:{token:token,userId:User["_id"]} });
-    }
-    catch (err) {
-        return res.status(500).send({ status: false, msg: err.message });
-    }
-}
+ 
 module.exports.loginUser = loginUser
