@@ -99,7 +99,7 @@ const loginUser = async function (req, res) {
 
         let token = jwt.sign({ userId: user._id }, "project3-room10-key", { expiresIn: '24hr' })
 
-        return res.status(201).send({ status: true, message: 'Success', data: token });
+        return res.status(201).send({ status: true, message: 'Success', data:{token:token,userId:User["_id"]} });
     }
     catch (err) {
         return res.status(500).send({ status: false, msg: err.message });
