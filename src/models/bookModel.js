@@ -6,11 +6,13 @@ const books = new mongoose.Schema({
     title: {
         type: String,
         unique: true,
-        require: true
+        require: true,
+        trim:true
     },
     excerpt: {
         type: String,
-        require: true
+        require: true,
+        trim:true
     },
     userId: {
         type: ObjectId,
@@ -20,15 +22,18 @@ const books = new mongoose.Schema({
     ISBN: {
         type: String,
         require: true,
-        unique: true
+        unique: true,
+        trim:true
     },
     category: {
         type: String,
-        require: true
+        require: true,
+        trim:true
     },
     subcategory: {
         type :[String],
-        require:true
+        require:true,
+        trim:true
     },
     reviews: {
         type: Number,

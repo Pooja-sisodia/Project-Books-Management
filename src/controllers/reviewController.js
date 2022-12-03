@@ -2,6 +2,7 @@ const reviewModel = require('../models/reviewModel');
 const bookModel = require('../models/bookModel'); 
 const userModel = require('../models/userModel');
 const { default: mongoose } = require('mongoose');
+const moment = require('moment');
 
 //=================================================Regex-And-Validators======================================================//
 const isValidRequestBody = (value)=>{
@@ -40,8 +41,8 @@ const createReviews = async function(req,res){
     let bookId = req.params.bookId
     if(!mongoose.isValidObjectId(bookId)){return res.status(400).send({status:false, message:`${bookId} this id is not valid`})}
 
-    let data = req.body
-    if(!isValidRequestBody(data)){return res.status(400).send({status:false, message:"please provide entries to the request body"})}
+     let data = req.body
+    
 
     let {reviewedBy,reviewedAt,rating,review,isDeleted} = data
     
@@ -66,7 +67,7 @@ const createReviews = async function(req,res){
 
       const reviewData = await reviewModel.create(data)
       let updateBook = await bookModel.findByIdAndUpdate({_id:bookId},{$inc:{reviews:+1}},{new:true})
-      updatebook._doc["reviewsData"]= reviewData
+      updateBook._doc["reviewsData"]= reviewData
       return res.status(201).send({status:true, message:"review is successfully created", data:updateBook})
 
  }catch(error){
@@ -83,14 +84,14 @@ const updateReview = async function (req, res) {
        if (!isValid(bookId)) {
            return res.status(404).send({ messege: "Please provide  bookId" })
        }
-       if (!isValidObjectId(bookId)) {
+       if (!mongoose.isValidObjectId(bookId)) {
            res.status(400).send({ status: false, message: 'You Are Providing Invalid bookId' });
            return;
        }
        if (!isValid(reviewId)) {
            return res.status(404).send({ message: "Please provide reviewId " })
        }
-       if (!isValidObjectId(reviewId)) {
+       if (!mongoose.isValidObjectId(reviewId)) {
            res.status(400).send({ status: false, message: 'You Are Providing Invalid reviewId' });
            return;
        }
@@ -166,7 +167,7 @@ const deleteReviwsById = async function (req, res) {
        }
 //---------------------------------------finding book and review to be deleted-------------------------------------------//
 
-       let book = await booksModel.findById(bookId)
+       let book = await bookModel.findById(bookId)
        if (!book || book.isDeleted == true) {
            return res.status(404).send({ status: false, message: "Book not found" })
        }
@@ -179,7 +180,7 @@ const deleteReviwsById = async function (req, res) {
        }
 
        await reviewModel.findOneAndUpdate({ _id: reviewId }, { isDeleted: true }, { new: true })
-       await booksModel.findOneAndUpdate({ _id: bookId }, { $inc: { reviews: -1 } })
+       await bookModel.findOneAndUpdate({ _id: bookId }, { $inc: { reviews: -1 } })
 
        return res.status(200).send({ status: true, message: "Review deleted successfully" })
 
