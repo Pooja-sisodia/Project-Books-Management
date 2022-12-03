@@ -1,11 +1,12 @@
 const userModel = require('../models/userModel.js')
 const bookModel = require('../models/bookModel')
+const jwt=require('jsonwebtoken')
 const mongoose = require('mongoose')
 
 //======================================================createUser============================================================//
 const createUser = async (req, res) => {
     try {
-        let { title, name, phone, email, password } = req.body
+        let { title, name, phone, email, password,address } = req.body
 
         if (Object.keys(req.body).length == 0) {
             return res.status(400).send({ status: false, msg: "for registration user data is required" })
@@ -56,6 +57,12 @@ const createUser = async (req, res) => {
         if (!(/^[\s]*[0-9a-zA-Z@#$%^&*]{8,15}[\s]*$/).test(password)) {
         return res.status(400).send({ status: false, msg: "please Enter valid Password and it's length should be 8-15" })
         }
+        if(address && typeof address !="object"){
+            return res.status(400).send({status:false,message:"Address should be in object form"})
+        }
+      
+
+
         let savedData = await userModel.create(req.body);
         return res.status(201).send({ status: true, message: 'Success', data: savedData });
     } catch (err) {
@@ -97,9 +104,9 @@ const loginUser = async function (req, res) {
             return res.status(404).send({ status: false, msg: "Email or Password is not corerct" });
         }
 
-        let token = jwt.sign({ userId: user._id }, "project3-room10-key", { expiresIn: '24hr' })
+        let token = jwt.sign({ userId: User._id }, "project3-room10-key", { expiresIn: '24hr' })
 
-        return res.status(201).send({ status: true, message: 'Success', data: token });
+        return res.status(201).send({ status: true, message: 'Success', data:{token:token,userId:User["_id"]} });
     }
     catch (err) {
         return res.status(500).send({ status: false, msg: err.message });
