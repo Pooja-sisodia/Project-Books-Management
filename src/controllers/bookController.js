@@ -1,5 +1,6 @@
 const bookModel = require('../models/bookModel'); 
 const userModel = require('../models/userModel');
+const reviewModel = require('../models/reviewModel')
 const mongoose = require('mongoose');
 const moment = require('moment');
 const ObjectId = require("mongoose").Types.ObjectId
@@ -7,7 +8,7 @@ const ObjectId = require("mongoose").Types.ObjectId
 //==================================================Regex-And-Validators==================================================================//
  const isValid = function(value){
     if(typeof value == "undefined"|| value=="null")return false
-    if(typeof value == "string" && value.trim().length==0) return false
+    if(typeof value  == "string" && value.trim().length==0) return false
     return true
  }
 
@@ -121,26 +122,29 @@ const getbooks = async (req, res) => {
     }
 }
 //================================================Get-Books-By-Id===========================================================================//
-const getBookById = async function (req, res) {
-    try {
-        let bookId = req.params.bookId
-  
-        if (!mongoose.Types.ObjectId.isValid(bookId)) {
-            return res.status(400).send({ status: false, message: "Please provide a valid book id." })
-        }
-  
-        let bookData = await bookModel.findOne({ id: bookId, isDeleted: false }).select({ "ISBN": 0, "isDeleted": 0, "subcategory": 0, "_v": 0, "createdAt": 0, "updatedAt": 0 })
-  
-        if (bookData) {
-            return res.status(200).send({ status: true, message: "Books List", data: bookData })
-        } else {
-            return res.status(404).send({ status: false, message: "No books found with this id." })
-        }
-    }
-    catch (error) {
-        return res.status(500).send({ status: false, message: error.message })
-    }
+const getBookById = async (req, res) => {
+  try {
+      let bookid1 = req.params.bookId
+      if (!bookid1)
+          return res.status(400).send({ status: false, msg: "please give book id" })
+      if (!mongoose.Types.ObjectId.isValid(bookid1))
+          return res.status(400).send({ status: false, msg: "please enter valid bookid" })
+
+      let book = await bookModel.findById(bookid1)
+
+      if (!book || book.isDeleted == true)
+          return res.status(404).send({ status: false, message: "No Book Found" })
+
+      const { title, _id, excerpt, userId, category, reviews, releasedAt } = book
+      let reviewsdata = await reviewModel.find({ bookId: bookid1 })
+      let result = { title, _id, excerpt, userId, category, reviews, releasedAt, reviewsdata }
+
+      return res.status(200).send({ status: true, message: "Book list", data: result })
+  } catch (error) {
+      res.status(500).send({ status: false, msg: error.message });
   }
+
+}
   
 //=====================================================Update-Books==========================================================================//
 const updateBooks = async function(req, res){
@@ -165,11 +169,6 @@ const updateBooks = async function(req, res){
             .send({ status: false, message: "Please provide any input to update" });
         }
     
-        if (!isValidName(title)) {
-          return res
-            .status(400)
-            .send({ status: false, message: "Enter valid title" });
-        }
     
         if(title){const isTitleAlreadyUsed = await bookModel.findOne({
           title,
@@ -181,14 +180,7 @@ const updateBooks = async function(req, res){
             .status(400)
             .send({ status: false, message: `title is already registered` });
         }}
-    
-        if (excerpt) {
-          if (!isValidName(excerpt)) {
-            return res
-              .status(400)
-              .send({ status: false, message: "Enter valid excerpt" });
-          }
-        }
+  
     
         if (ISBN) {
           if (!isValidISBN(ISBN)) {
@@ -202,15 +194,7 @@ const updateBooks = async function(req, res){
           ISBN,
           isDeleted: false,
         });
-    
-        if (isIsbnAlreadyUsed) {
-          return res
-            .status(400)
-            .send({ status: false, message: `ISBN is already registered` });
-        }
-    
         
-    
         const currentDate = moment().format('MMMM Do YYYY, h:mm:ss a')
         req.body["releasedAt"]=currentDate
     
