@@ -21,7 +21,7 @@ exports.authentication = async function (req, res, next) {
         })
     }
     catch (err) {
-        return res.status(500).send({ status: false, msg: err.message })
+        return res.status(500).send({ status: false, message: err.message })
     }
 }
 
@@ -41,8 +41,8 @@ exports.Authorisation = async function (req, res, next) {
 
         next()
 
-    } catch (err) {
-        return res.status(500).send({ status: false, msg: err.message })
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
     }
 
 }

@@ -39,8 +39,7 @@ const createBooks = async function(req,res){
     
     let{title,excerpt,userId,ISBN,category,subcategory,releasedAt,reviews,isDeleted}=data
 
-
-//============================================crendentials-checking==============================================================================//
+//============================================Crendentials-Checking==============================================================================//
     if(!title){return res.status(400).send({status:true, message:"please provide the title key"})}
     if(!excerpt){return res.status(400).send({status:true, message:"please provide the excerpt key"})}
     if(!userId){return res.status(400).send({status:true, message:"please provide the userId key"})}
@@ -48,34 +47,39 @@ const createBooks = async function(req,res){
     if(!category){return res.status(400).send({status:true, message:"please provide the category key"})}
     if(!subcategory){return res.status(400).send({status:true, message:"please provide the subcategory key"})}
     
+//===========================================Mandatory-fields-Are-checking======================================================================//
     if(!isValid(title)){return res.status(400).send({status:false, message:"title is require"})}
     if(!isValid(excerpt)){return res.status(400).send({status:false, message:"excerpt is required"})}
     if(!isValid(userId)){return res.status(400).send({status:false, message:"userId is required"})}
     if(!isValid(ISBN)){return res.status(400).send({status:false, message:"ISBN is required"})}
     if(!isValid(category)){return res.status(400).send({status:false, message:"category is required"})}
     if(!isValid(subcategory)){return res.status(400).send({status:false, message:"subcategory is required"})}
-    
-    
+    if(!isValid(releasedAt)){return res.status(400).send({status:false, message:"releasedAt is required"})}
+//==============================================UserId-Validations-Checking====================================================================//
     if(!isValidId(userId)){return res.status(400).send({status:false, message:"please enter a valid userId"})}
     let validUser = await userModel.findById(userId)
     if(!validUser){return res.status(404).send({status:false, message:"user not found by this userId "})}
 
+//===============================================Unique-Title-Checking=========================================================================//
     let uniqueTitle = await bookModel.findOne({title:title})
     if(uniqueTitle){return res.status(400).send({status:false, message:"this title is already exist"})}
 
+//=============================================ISBN-Validations-Checking=======================================================================//
     if(!isValidISBN(ISBN)){return res.status(406).send({status:false, message:"please provide the valid ISBN"})}
     let uniqueISBN = await bookModel.findOne({ISBN:ISBN})
     if(uniqueISBN){return res.status(400).send({status:false,message:"this ISBN is already used"})}
-
-   
+    
+//=============================================RealeasedAT-validations-Checking================================================================//
     if(releasedAt){
         if(!isValidDate(releasedAt)) return res.status(400).send({ status: false, message: 'Please enter a  release Date YYYY-MM-DD format' })
     }else{ data["releasedAt"] = moment().format('YYYY MM DD') }
 
-    if(reviews) return res.status(406).send({status:false, message: 'default value of reviews is 0 while book registering' })
+//============================================Reviews-AND-isDeleted-validations-Checking===================================================//
+    if(reviews) return res.status(400).send({status:false, message: 'default value of reviews is 0 while book registering' })
     
     if(isDeleted == true){return res.status(400).send({status:false, message:"you can't delete a book while creating"})}
 
+//============================================Calling-MongoDb-for-Create-Book====================================================//
     let book = await bookModel.create(data)
     return res.status(201).send({status:true, message:"Book is successfully created", data:book})
 
@@ -197,6 +201,7 @@ const updateBooks = async function(req, res){
         
         const currentDate = moment().format('MMMM Do YYYY, h:mm:ss a')
         req.body["releasedAt"]=currentDate
+        console.log(currentdate)
     
         const update = await bookModel.findOneAndUpdate(
           { _id: bookId, isDeleted: false },
